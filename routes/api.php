@@ -15,3 +15,6 @@ Route::get('/items', [ItemController::class, 'index']);
 // Endpoint untuk request barang
 Route::get('/requests', [RequestController::class, 'index']);
 Route::post('/requests', [RequestController::class, 'store']);
+
+Route::get('/users/nik/{nik}', [UserController::class, 'findByNik']);
+

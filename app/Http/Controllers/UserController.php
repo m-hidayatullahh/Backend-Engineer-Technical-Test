@@ -11,4 +11,14 @@ class UserController extends Controller
     {
         return response()->json(User::all());
     }
+
+    public function findByNik($nik)
+{
+    $user = User::where('nik', $nik)->first();
+    if (!$user) {
+        return response()->json(['message' => 'User tidak ditemukan'], 404);
+    }
+    return response()->json($user);
+}
+
 }

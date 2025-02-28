@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import App from './components/App.vue';
+import RequestForm from './components/RequestForm.vue';
 
-const app = createApp(App);
-app.mount('#app');
+const app = createApp(RequestForm);
+app.mount("#app");
