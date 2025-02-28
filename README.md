@@ -9,8 +9,8 @@ Dibangun menggunakan **Laravel 12 + MySQL + Vue.js**.
 ## 🚀 Instalasi
 1. Clone repositori:
    ```bash
-   git clone https://github.com/username/inventory-system.git
-   cd inventory-system
+   https://github.com/m-hidayatullahh/Backend-Engineer-Technical-Test
+   cd Backend-Engineer-Technical-Test
 
 2. Install dependencies:
 ```bash
