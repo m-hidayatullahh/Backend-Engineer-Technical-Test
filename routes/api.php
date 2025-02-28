@@ -18,3 +18,5 @@ Route::post('/requests', [RequestController::class, 'store']);
 
 Route::get('/users/nik/{nik}', [UserController::class, 'findByNik']);
 
+Route::put('/requests/{id}/update-status', [RequestController::class, 'updateStatus']);
+

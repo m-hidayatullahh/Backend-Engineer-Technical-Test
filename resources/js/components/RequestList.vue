@@ -9,7 +9,7 @@
                     <th class="border border-gray-300 p-2">Nama Karyawan</th>
                     <th class="border border-gray-300 p-2">Departemen</th>
                     <th class="border border-gray-300 p-2">Status</th>
-                    <th class="border border-gray-300 p-2">Detail</th>
+                    <th class="border border-gray-300 p-2">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,7 +18,11 @@
                     <td class="border border-gray-300 p-2">{{ request.user.name }}</td>
                     <td class="border border-gray-300 p-2">{{ request.user.department }}</td>
                     <td class="border border-gray-300 p-2">
-                        <span :class="getStatusClass(request.status)">{{ request.status }}</span>
+                        <select v-model="request.status" @change="updateStatus(request.id, request.status)" class="border rounded p-1">
+                            <option value="Pending">Pending</option>
+                            <option value="Fulfilled">Fulfilled</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
                     </td>
                     <td class="border border-gray-300 p-2">
                         <button @click="toggleDetails(request.id)" class="text-blue-500">Lihat</button>
@@ -51,26 +55,25 @@ const requests = ref([]);
 const selectedRequest = ref(null);
 
 onMounted(async () => {
-    const response = await axios.get('/api/requests');
-    requests.value = response.data;
+    try {
+        const response = await axios.get('/api/requests');
+        requests.value = response.data;
+    } catch (error) {
+        console.error("Gagal mengambil data permintaan:", error);
+    }
 });
 
 const toggleDetails = async (id) => {
     selectedRequest.value = requests.value.find(req => req.id === id);
 };
 
-const getStatusClass = (status) => {
-    return {
-        'text-green-600 font-semibold': status === 'Fulfilled',
-        'text-yellow-600 font-semibold': status === 'Partially Fulfilled',
-        'text-red-600 font-semibold': status === 'Rejected',
-        'text-gray-600 font-semibold': status === 'Pending',
-    };
+const updateStatus = async (id, newStatus) => {
+    try {
+        await axios.put(`/api/requests/${id}/update-status`, { status: newStatus });
+        alert("Status berhasil diperbarui!");
+    } catch (error) {
+        console.error(error);
+        alert("Gagal memperbarui status!");
+    }
 };
 </script>
-
-<style scoped>
-button {
-    cursor: pointer;
-}
-</style>

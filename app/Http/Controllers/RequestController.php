@@ -28,4 +28,17 @@ class RequestController extends Controller
 
         return response()->json(['message' => 'Permintaan berhasil dibuat!', 'data' => $req], 201);
     }
+
+    public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:Pending,Fulfilled,Rejected',
+    ]);
+
+    $permintaan = RequestModel::findOrFail($id);
+    $permintaan->status = $request->status;
+    $permintaan->save();
+
+    return response()->json(['message' => 'Status permintaan berhasil diperbarui']);
+}
 }
