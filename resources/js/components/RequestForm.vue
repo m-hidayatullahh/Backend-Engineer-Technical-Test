@@ -1,37 +1,38 @@
 <template>
-    <div class="p-6 max-w-2xl mx-auto bg-white shadow-md rounded-lg">
-        <h2 class="text-2xl font-bold mb-4">Form Permintaan Barang</h2>
+    <div class="p-8 max-w-3xl mx-auto bg-white shadow-xl rounded-lg">
+        <h2 class="text-3xl font-bold text-center mb-6 text-blue-600">Permintaan Barang</h2>
 
-        <form @submit.prevent="submitRequest">
+        <form @submit.prevent="submitRequest" class="space-y-6">
             <!-- Input NIK -->
-            <div class="mb-4">
-                <label class="block font-semibold mb-1">Masukkan NIK:</label>
+            <div>
+                <label class="block font-semibold text-gray-700">Masukkan NIK:</label>
                 <input
                     v-model="nik"
                     @input="fetchUserByNik"
                     type="text"
-                    class="w-full p-2 border rounded"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300"
                     placeholder="Masukkan NIK"
                     required
                 />
             </div>
 
             <!-- Auto-Fill Nama & Departemen -->
-            <div class="mb-4">
-                <label class="block font-semibold mb-1">Nama:</label>
-                <input type="text" v-model="form.user_name" class="w-full p-2 border rounded bg-gray-200" disabled required />
-            </div>
-
-            <div class="mb-4">
-                <label class="block font-semibold mb-1">Departemen:</label>
-                <input type="text" v-model="form.department" class="w-full p-2 border rounded bg-gray-200" disabled required />
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-semibold text-gray-700">Nama:</label>
+                    <input type="text" v-model="form.user_name" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100" disabled />
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700">Departemen:</label>
+                    <input type="text" v-model="form.department" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100" disabled />
+                </div>
             </div>
 
             <!-- Pilihan Barang -->
-            <div class="mb-4">
-                <label class="block font-semibold mb-1">Pilih Barang:</label>
-                <div v-for="(item, index) in form.items" :key="index" class="mb-4 p-4 border rounded bg-gray-100">
-                    <select v-model="item.item_id" @change="updateItemDetails(index)" class="w-full p-2 border rounded" required>
+            <div>
+                <label class="block font-semibold text-gray-700">Pilih Barang:</label>
+                <div v-for="(item, index) in form.items" :key="index" class="mb-4 p-4 border rounded-lg bg-gray-50 shadow-sm">
+                    <select v-model="item.item_id" @change="updateItemDetails(index)" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring focus:ring-blue-300">
                         <option value="" disabled>Pilih Barang</option>
                         <option v-for="barang in items" :key="barang.id" :value="barang.id">
                             {{ barang.name }} (Stok: {{ barang.stock }} {{ barang.unit }})
@@ -39,31 +40,31 @@
                     </select>
 
                     <!-- Detail Barang -->
-                    <div v-if="item.details" class="mt-2 text-sm text-gray-700">
+                    <div v-if="item.details" class="mt-2 text-gray-700">
                         <p><strong>Lokasi:</strong> {{ item.details.location }}</p>
                         <p><strong>Stok:</strong> {{ item.details.stock }} {{ item.details.unit }}</p>
-                        <p><strong>Satuan:</strong> {{ item.details.unit }}</p>
                     </div>
 
                     <!-- Input Kuantitas Permintaan -->
-                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas" @input="checkStock(index)" required>
+                    <input type="number" v-model="item.quantity" min="1" class="w-full p-3 border border-gray-300 rounded-lg mt-2 focus:ring focus:ring-blue-300" placeholder="Kuantitas" @input="checkStock(index)" required>
 
-                    <!-- Alert jika stok kurang -->
-                    <p v-if="item.stock_status === 'Kosong'" class="text-red-500 mt-2">Barang tidak tersedia!</p>
-                    <p v-if="item.stock_status === 'Sebagian'" class="text-yellow-500 mt-2">Stok tidak mencukupi, harap kurangi jumlah!</p>
-                    <p v-if="item.stock_status === 'Melebihi Stok'" class="text-red-500 mt-2 font-bold">Jumlah melebihi stok! Harap kurangi.</p>
+                    <!-- Status Stok -->
+                    <p v-if="item.stock_status === 'Kosong'" class="text-red-500 font-bold mt-2">Barang tidak tersedia!</p>
+                    <p v-if="item.stock_status === 'Sebagian'" class="text-yellow-500 font-bold mt-2">Stok tidak mencukupi, harap kurangi jumlah!</p>
+                    <p v-if="item.stock_status === 'Melebihi Stok'" class="text-red-500 font-bold mt-2">Jumlah melebihi stok! Harap kurangi.</p>
 
-                    <button @click.prevent="removeItem(index)" class="text-red-500 mt-2">Hapus</button>
+                    <button @click.prevent="removeItem(index)" class="text-red-500 mt-2 hover:underline">Hapus Barang</button>
                 </div>
-                <button @click.prevent="addItem" class="text-blue-500">+ Tambah Barang</button>
+                <button @click.prevent="addItem" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">+ Tambah Barang</button>
             </div>
 
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded" :disabled="!isFormValid">Kirim Permintaan</button>
+            <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-lg hover:bg-green-700 transition" :disabled="!isFormValid">Kirim Permintaan</button>
         </form>
 
-        <p v-if="message" class="mt-4 text-green-500">{{ message }}</p>
+        <p v-if="message" class="mt-4 text-green-500 text-center">{{ message }}</p>
     </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';

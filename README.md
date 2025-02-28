@@ -20,9 +20,12 @@ npm install
 
 3. Konfigurasi .env
 ```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_DATABASE=inventory
 DB_USERNAME=root
-DB_PASSWORD=
+DB_PASSWORD= your password
 ```
 
 4.Jalankan migration dan seeder:
@@ -62,8 +65,8 @@ POST /api/requests → Membuat permintaan barang.
 ```
 
 ## 🛠 Teknologi yang Digunakan
-##### Laravel 11 (Backend)
-##### Vue.js (Frontend)
+##### Laravel 12 (Backend)
+##### Vue.js 3 (Frontend)
 ##### MySQL (Database)
 ##### Tailwind CSS (Styling)
 ##### Vite (Bundler)
