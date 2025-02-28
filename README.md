@@ -71,3 +71,5 @@ POST /api/requests → Membuat permintaan barang.
 ##### Tailwind CSS (Styling)
 ##### Vite (Bundler)
 
+# Demo Video
+https://www.awesomescreenshot.com/video/37128098?key=8e1fd00065f0bc3b6c05e0da061aca9b
