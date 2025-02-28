@@ -72,4 +72,4 @@ POST /api/requests → Membuat permintaan barang.
 ##### Vite (Bundler)
 
 # Demo Video
-https://www.awesomescreenshot.com/video/37128098?key=8e1fd00065f0bc3b6c05e0da061aca9b
+https://www.awesomescreenshot.com/video/37128430?key=18e15041cab8bff1f1284f3d0382d8d7
