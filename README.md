@@ -2,7 +2,7 @@
 
 ## 📌 Pendahuluan
 API ini digunakan untuk mengelola permintaan barang di perusahaan.  
-Dibangun menggunakan **Laravel 11 + MySQL + Vue.js**.
+Dibangun menggunakan **Laravel 12 + MySQL + Vue.js**.
 
 ---
 

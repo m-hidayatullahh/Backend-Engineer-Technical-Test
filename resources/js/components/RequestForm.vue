@@ -12,27 +12,29 @@
                     type="text"
                     class="w-full p-2 border rounded"
                     placeholder="Masukkan NIK"
+                    required
                 />
             </div>
 
             <!-- Auto-Fill Nama & Departemen -->
             <div class="mb-4">
                 <label class="block font-semibold mb-1">Nama:</label>
-                <input type="text" v-model="form.user_name" class="w-full p-2 border rounded bg-gray-200" disabled />
+                <input type="text" v-model="form.user_name" class="w-full p-2 border rounded bg-gray-200" disabled required />
             </div>
 
             <div class="mb-4">
                 <label class="block font-semibold mb-1">Departemen:</label>
-                <input type="text" v-model="form.department" class="w-full p-2 border rounded bg-gray-200" disabled />
+                <input type="text" v-model="form.department" class="w-full p-2 border rounded bg-gray-200" disabled required />
             </div>
 
             <!-- Pilihan Barang -->
             <div class="mb-4">
                 <label class="block font-semibold mb-1">Pilih Barang:</label>
                 <div v-for="(item, index) in form.items" :key="index" class="mb-4 p-4 border rounded bg-gray-100">
-                    <select v-model="item.item_id" @change="updateItemDetails(index)" class="w-full p-2 border rounded">
+                    <select v-model="item.item_id" @change="updateItemDetails(index)" class="w-full p-2 border rounded" required>
+                        <option value="" disabled>Pilih Barang</option>
                         <option v-for="barang in items" :key="barang.id" :value="barang.id">
-                            {{ barang.name }} (Stok: {{ barang.stock }})
+                            {{ barang.name }} (Stok: {{ barang.stock }} {{ barang.unit }})
                         </option>
                     </select>
 
@@ -44,19 +46,19 @@
                     </div>
 
                     <!-- Input Kuantitas Permintaan -->
-                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas" @input="checkStock(index)">
+                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas" @input="checkStock(index)" required>
 
-                    <!-- Status Stok -->
-                    <p v-if="item.stock_status" :class="getStockStatusClass(item.stock_status)" class="mt-2">
-                        Status: {{ item.stock_status }}
-                    </p>
+                    <!-- Alert jika stok kurang -->
+                    <p v-if="item.stock_status === 'Kosong'" class="text-red-500 mt-2">Barang tidak tersedia!</p>
+                    <p v-if="item.stock_status === 'Sebagian'" class="text-yellow-500 mt-2">Stok tidak mencukupi, harap kurangi jumlah!</p>
+                    <p v-if="item.stock_status === 'Melebihi Stok'" class="text-red-500 mt-2 font-bold">Jumlah melebihi stok! Harap kurangi.</p>
 
                     <button @click.prevent="removeItem(index)" class="text-red-500 mt-2">Hapus</button>
                 </div>
                 <button @click.prevent="addItem" class="text-blue-500">+ Tambah Barang</button>
             </div>
 
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">Kirim Permintaan</button>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded" :disabled="!isFormValid">Kirim Permintaan</button>
         </form>
 
         <p v-if="message" class="mt-4 text-green-500">{{ message }}</p>
@@ -64,12 +66,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
-const users = ref([]);
-const items = ref([]);
-const message = ref('');
 const nik = ref('');
 const form = ref({
     user_id: '',
@@ -77,13 +76,16 @@ const form = ref({
     department: '',
     items: [{ item_id: '', quantity: 1, details: null, stock_status: '' }]
 });
+const message = ref('');
+const items = ref([]);
 
+// Fetch daftar barang saat komponen dimuat
 onMounted(async () => {
-    const itemsResponse = await axios.get('/api/items');
-    items.value = itemsResponse.data;
+    const response = await axios.get('/api/items');
+    items.value = response.data;
 });
 
-// Fetch user by NIK
+// Fetch user berdasarkan NIK
 const fetchUserByNik = async () => {
     if (nik.value.length >= 5) {
         try {
@@ -99,7 +101,7 @@ const fetchUserByNik = async () => {
     }
 };
 
-// Update item details when item is selected
+// Update detail barang saat barang dipilih
 const updateItemDetails = (index) => {
     const selectedItem = items.value.find(i => i.id === form.value.items[index].item_id);
     if (selectedItem) {
@@ -120,47 +122,44 @@ const checkStock = (index) => {
     const stock = item.details.stock;
     const quantity = item.quantity;
 
-    if (quantity <= 0) {
-        item.stock_status = '';
-    } else if (quantity > stock) {
-        item.stock_status = stock > 0 ? 'Sebagian' : 'Kosong';
+    if (quantity > stock) {
+        item.stock_status = 'Melebihi Stok';
+        alert(`Jumlah permintaan (${quantity} ${item.details.unit}) melebihi stok tersedia (${stock} ${item.details.unit})!`);
+    } else if (quantity === stock) {
+        item.stock_status = 'Sebagian';
     } else {
         item.stock_status = 'Tersedia';
     }
 };
 
-// Mengatur warna berdasarkan status stok
-const getStockStatusClass = (status) => {
-    return {
-        'text-green-600 font-semibold': status === 'Tersedia',
-        'text-yellow-600 font-semibold': status === 'Sebagian',
-        'text-red-600 font-semibold': status === 'Kosong',
-    };
-};
+// Validasi sebelum submit
+const isFormValid = computed(() => {
+    return form.value.items.every(item => item.item_id && item.quantity > 0 && item.stock_status !== 'Melebihi Stok' && item.stock_status !== 'Kosong');
+});
 
+// Tambah & Hapus Barang
 const addItem = () => {
     form.value.items.push({ item_id: '', quantity: 1, details: null, stock_status: '' });
 };
-
 const removeItem = (index) => {
     form.value.items.splice(index, 1);
 };
 
+// Kirim permintaan ke backend
 const submitRequest = async () => {
+    if (!isFormValid.value) {
+        alert("Form tidak valid. Pastikan semua field diisi dan stok mencukupi.");
+        return;
+    }
     try {
         const response = await axios.post('/api/requests', form.value);
+        alert("Permintaan berhasil dikirim!");
         message.value = response.data.message;
         form.value = { user_id: '', user_name: '', department: '', items: [{ item_id: '', quantity: 1, details: null, stock_status: '' }] };
         nik.value = '';
     } catch (error) {
         console.error(error);
-        message.value = "Terjadi kesalahan!";
+        alert("Terjadi kesalahan saat mengirim permintaan!");
     }
 };
 </script>
-
-<style scoped>
-button {
-    cursor: pointer;
-}
-</style>
