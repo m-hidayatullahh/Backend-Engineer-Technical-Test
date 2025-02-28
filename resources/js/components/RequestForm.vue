@@ -29,14 +29,22 @@
             <!-- Pilihan Barang -->
             <div class="mb-4">
                 <label class="block font-semibold mb-1">Pilih Barang:</label>
-                <div v-for="(item, index) in form.items" :key="index" class="flex gap-2 mb-2">
-                    <select v-model="item.item_id" class="w-3/4 p-2 border rounded">
+                <div v-for="(item, index) in form.items" :key="index" class="mb-4 p-4 border rounded bg-gray-100">
+                    <select v-model="item.item_id" @change="updateItemDetails(index)" class="w-full p-2 border rounded">
                         <option v-for="barang in items" :key="barang.id" :value="barang.id">
                             {{ barang.name }} (Stok: {{ barang.stock }})
                         </option>
                     </select>
-                    <input type="number" v-model="item.quantity" min="1" class="w-1/4 p-2 border rounded" placeholder="Qty">
-                    <button @click.prevent="removeItem(index)" class="text-red-500">X</button>
+
+                    <!-- Detail Barang -->
+                    <div v-if="item.details" class="mt-2 text-sm text-gray-700">
+                        <p><strong>Lokasi:</strong> {{ item.details.location }}</p>
+                        <p><strong>Stok:</strong> {{ item.details.stock }} {{ item.details.unit }}</p>
+                        <p><strong>Satuan:</strong> {{ item.details.unit }}</p>
+                    </div>
+
+                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas">
+                    <button @click.prevent="removeItem(index)" class="text-red-500 mt-2">Hapus</button>
                 </div>
                 <button @click.prevent="addItem" class="text-blue-500">+ Tambah Barang</button>
             </div>
@@ -60,7 +68,7 @@ const form = ref({
     user_id: '',
     user_name: '',
     department: '',
-    items: [{ item_id: '', quantity: 1 }]
+    items: [{ item_id: '', quantity: 1, details: null }]
 });
 
 onMounted(async () => {
@@ -84,8 +92,18 @@ const fetchUserByNik = async () => {
     }
 };
 
+// Update item details when item is selected
+const updateItemDetails = (index) => {
+    const selectedItem = items.value.find(i => i.id === form.value.items[index].item_id);
+    form.value.items[index].details = selectedItem ? {
+        location: selectedItem.location,
+        stock: selectedItem.stock,
+        unit: selectedItem.unit
+    } : null;
+};
+
 const addItem = () => {
-    form.value.items.push({ item_id: '', quantity: 1 });
+    form.value.items.push({ item_id: '', quantity: 1, details: null });
 };
 
 const removeItem = (index) => {
@@ -96,7 +114,7 @@ const submitRequest = async () => {
     try {
         const response = await axios.post('/api/requests', form.value);
         message.value = response.data.message;
-        form.value = { user_id: '', user_name: '', department: '', items: [{ item_id: '', quantity: 1 }] };
+        form.value = { user_id: '', user_name: '', department: '', items: [{ item_id: '', quantity: 1, details: null }] };
         nik.value = '';
     } catch (error) {
         console.error(error);
