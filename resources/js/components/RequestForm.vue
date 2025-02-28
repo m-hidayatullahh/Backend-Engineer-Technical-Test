@@ -43,7 +43,14 @@
                         <p><strong>Satuan:</strong> {{ item.details.unit }}</p>
                     </div>
 
-                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas">
+                    <!-- Input Kuantitas Permintaan -->
+                    <input type="number" v-model="item.quantity" min="1" class="w-full p-2 border rounded mt-2" placeholder="Kuantitas" @input="checkStock(index)">
+
+                    <!-- Status Stok -->
+                    <p v-if="item.stock_status" :class="getStockStatusClass(item.stock_status)" class="mt-2">
+                        Status: {{ item.stock_status }}
+                    </p>
+
                     <button @click.prevent="removeItem(index)" class="text-red-500 mt-2">Hapus</button>
                 </div>
                 <button @click.prevent="addItem" class="text-blue-500">+ Tambah Barang</button>
@@ -68,7 +75,7 @@ const form = ref({
     user_id: '',
     user_name: '',
     department: '',
-    items: [{ item_id: '', quantity: 1, details: null }]
+    items: [{ item_id: '', quantity: 1, details: null, stock_status: '' }]
 });
 
 onMounted(async () => {
@@ -95,15 +102,44 @@ const fetchUserByNik = async () => {
 // Update item details when item is selected
 const updateItemDetails = (index) => {
     const selectedItem = items.value.find(i => i.id === form.value.items[index].item_id);
-    form.value.items[index].details = selectedItem ? {
-        location: selectedItem.location,
-        stock: selectedItem.stock,
-        unit: selectedItem.unit
-    } : null;
+    if (selectedItem) {
+        form.value.items[index].details = {
+            location: selectedItem.location,
+            stock: selectedItem.stock,
+            unit: selectedItem.unit
+        };
+        checkStock(index);
+    }
+};
+
+// Cek status stok berdasarkan jumlah permintaan
+const checkStock = (index) => {
+    const item = form.value.items[index];
+    if (!item.details) return;
+
+    const stock = item.details.stock;
+    const quantity = item.quantity;
+
+    if (quantity <= 0) {
+        item.stock_status = '';
+    } else if (quantity > stock) {
+        item.stock_status = stock > 0 ? 'Sebagian' : 'Kosong';
+    } else {
+        item.stock_status = 'Tersedia';
+    }
+};
+
+// Mengatur warna berdasarkan status stok
+const getStockStatusClass = (status) => {
+    return {
+        'text-green-600 font-semibold': status === 'Tersedia',
+        'text-yellow-600 font-semibold': status === 'Sebagian',
+        'text-red-600 font-semibold': status === 'Kosong',
+    };
 };
 
 const addItem = () => {
-    form.value.items.push({ item_id: '', quantity: 1, details: null });
+    form.value.items.push({ item_id: '', quantity: 1, details: null, stock_status: '' });
 };
 
 const removeItem = (index) => {
@@ -114,7 +150,7 @@ const submitRequest = async () => {
     try {
         const response = await axios.post('/api/requests', form.value);
         message.value = response.data.message;
-        form.value = { user_id: '', user_name: '', department: '', items: [{ item_id: '', quantity: 1, details: null }] };
+        form.value = { user_id: '', user_name: '', department: '', items: [{ item_id: '', quantity: 1, details: null, stock_status: '' }] };
         nik.value = '';
     } catch (error) {
         console.error(error);
