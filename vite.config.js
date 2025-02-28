@@ -10,4 +10,8 @@ export default defineConfig({
         }),
         vue(),
     ],
+    server: {
+        strictPort: true,
+        cors: true,
+    }
 });
